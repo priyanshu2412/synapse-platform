@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  role          UserRole  @default(INDIVIDUAL)
+  company       String?
+  industry      String?
+  isPremium     Boolean   @default(false)
+
+  accounts      Account[]
+  sessions      Session[]
+  problems      Problem[] @relation("UserProblems")
+  solutions     Solution[] @relation("UserSolutions")
+  proposals     Proposal[] @relation("UserProposals")
+  verifications Verification[]
+  notifications Notification[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Problem {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  description String
+  industry   String
+  company    String
+  tags       String[]
+  embedding  String   @db.Text
+  likes      Int      @default(0)
+  interested Int      @default(0)
+  solutions  Int      @default(0)
+  aiMatches  Json[]
+
+  createdAt  DateTime @default(now())
+
+  user       User     @relation("UserProblems", fields: [userId], references: [id], onDelete: Cascade)
+  proposals  Proposal[]
+}
+
+model Solution {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String
+  industry    String
+  author      String
+  tags        String[]
+  embedding   String   @db.Text
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation("UserSolutions", fields: [userId], references: [id], onDelete: Cascade)
+  proposals   Proposal[]
+}
+
+model Proposal {
+  id          String   @id @default(cuid())
+  problemId   String
+  solutionId  String
+  innovatorId String
+  status      String   @default("pending")
+
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solution    Solution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  innovator   User     @relation("UserProposals", fields: [innovatorId], references: [id], onDelete: Cascade)
+  collaboration Collaboration?
+}
+
+model Collaboration {
+  id         String  @id @default(cuid())
+  proposalId String  @unique
+  workspace  Json
+
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  proposals   Int      @default(0)
+  isVerified  Boolean  @default(false)
+  verifiedAt  DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  INDUSTRY
+  INDIVIDUAL
+}
+
