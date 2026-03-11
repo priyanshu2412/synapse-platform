@@ -3,11 +3,25 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { getDemoName, getDemoRole, clearDemoSession } from "@/lib/demoAuth";
 
 export function Navbar() {
-  const { data: session, status } = useSession();
-  const isAuthed = status === "authenticated";
+  const [demoRole, setDemoRole] = useState<string | null>(null);
+  const [demoName, setDemoName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDemoRole(getDemoRole());
+    setDemoName(getDemoName());
+  }, []);
+
+  const isAuthed = !!demoRole;
+  const displayName = demoName ?? (demoRole === "INDUSTRY" ? "Industry" : "Innovator");
+
+  const handleLogout = () => {
+    clearDemoSession();
+    window.location.href = "/";
+  };
 
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-emerald-500/20 bg-deep-black/95 backdrop-blur-md">
@@ -45,40 +59,38 @@ export function Navbar() {
           >
             For Innovators
           </Link>
+          <Link
+            href="/workspace"
+            className="text-sm text-subtext-gray transition hover:text-text-white"
+          >
+            Workspace
+          </Link>
         </nav>
         <div className="flex items-center gap-3">
           {isAuthed ? (
-            <div className="hidden items-center gap-2 md:flex">
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-neural-green">
-                Signed in
-              </span>
-              <span className="text-xs text-subtext-gray">
-                {session?.user?.name ?? session?.user?.email}
-              </span>
-            </div>
-          ) : null}
-          {!isAuthed ? (
-            <Link href="/auth/login">
-              <Button variant="ghost" size="sm">
-                Log in
+            <>
+              <div className="hidden items-center gap-2 md:flex">
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-neural-green">
+                  {demoRole}
+                </span>
+                <span className="text-xs text-subtext-gray">{displayName}</span>
+              </div>
+              <Button size="sm" variant="outline" onClick={handleLogout}>
+                Log out
               </Button>
-            </Link>
+            </>
           ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                signOut({ callbackUrl: "/" });
-              }}
-            >
-              Log out
-            </Button>
+            <>
+              <Link href="/auth/login">
+                <Button variant="ghost" size="sm">
+                  Log in
+                </Button>
+              </Link>
+              <Link href="/auth/industry-signup">
+                <Button size="sm">Get Started</Button>
+              </Link>
+            </>
           )}
-          {!isAuthed ? (
-            <Link href="/auth/industry-signup">
-              <Button size="sm">Get Started</Button>
-            </Link>
-          ) : null}
         </div>
       </div>
     </header>

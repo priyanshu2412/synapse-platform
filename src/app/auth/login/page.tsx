@@ -33,8 +33,7 @@ export default function LoginPage() {
         <LoginPanels />
 
         <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-dark-graphite/60 p-4 text-xs text-subtext-gray shadow-neural">
-          Google sign-in requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
-          and `NEXTAUTH_SECRET` in your `.env.local`.
+          Demo mode: pick Industry or Individual to sign in with no setup.
         </div>
       </div>
     </div>

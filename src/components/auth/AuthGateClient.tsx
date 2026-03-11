@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { getDemoRole } from "@/lib/demoAuth";
 
 export function AuthGateClient() {
-  const { status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === "authenticated") {
-      window.location.href = "/dashboard";
+    if (getDemoRole()) {
+      router.replace("/dashboard");
     }
-  }, [status]);
+  }, [router]);
 
   return null;
 }
-

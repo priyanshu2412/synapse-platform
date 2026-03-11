@@ -1,9 +1,10 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { Home, Brain, Layers, Sparkles, Bell, User } from "lucide-react";
+import { Home, Brain, Layers, Sparkles, Bell, User, LayoutGrid } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/workspace", label: "Workspace", icon: LayoutGrid },
   { href: "/dashboard/problems", label: "Problems", icon: Brain },
   { href: "/dashboard/solutions", label: "Solutions", icon: Layers },
   { href: "/dashboard/ai-matches", label: "AI Matches", icon: Sparkles },

@@ -1,30 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Building2, UserRound, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "next/navigation";
+import { setDemoSession } from "@/lib/demoAuth";
 
 type PanelProps = {
   title: string;
   subtitle: string;
   bullets: string[];
   icon: React.ReactNode;
-  primaryLabel: string;
   role: "INDUSTRY" | "INDIVIDUAL";
 };
 
-function Panel({
-  title,
-  subtitle,
-  bullets,
-  icon,
-  primaryLabel,
-  role
-}: PanelProps) {
+function Panel({ title, subtitle, bullets, icon, role }: PanelProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") || "/dashboard";
+  const from = searchParams.get("callbackUrl") || "/dashboard";
+
+  const handleLogin = () => {
+    const name = role === "INDUSTRY" ? "MedSpace Health" : "Ava Singh";
+    setDemoSession(role, name);
+    router.push(from);
+    router.refresh();
+  };
 
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-black/55 p-6 shadow-neural transition hover:border-neural-green/70 hover:bg-black/65">
@@ -55,33 +55,32 @@ function Panel({
         <div className="mt-5 space-y-2 text-sm text-subtext-gray">
           {bullets.map((b) => (
             <div key={b} className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-neural-green" />
+              <ShieldCheck className="h-4 w-4 shrink-0 text-neural-green" />
               <span>{b}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button
-            className="w-full gap-2"
-            onClick={() => {
-              signIn("google", {
-                callbackUrl: from
-              });
-            }}
-            type="button"
-          >
-            {primaryLabel} <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="mt-3 flex items-center justify-between text-xs text-subtext-gray">
+        <Button
+          className="mt-6 w-full gap-2"
+          onClick={handleLogin}
+          type="button"
+        >
+          Continue as {role === "INDUSTRY" ? "Industry" : "Individual"}
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+
+        <div className="mt-4 text-xs text-subtext-gray">
           <Link
-            href={role === "INDUSTRY" ? "/auth/industry-signup" : "/auth/individual-signup"}
+            href={
+              role === "INDUSTRY"
+                ? "/auth/industry-signup"
+                : "/auth/individual-signup"
+            }
             className="text-neural-green hover:text-neural-glow"
           >
             Create an account
           </Link>
-          <span>Google SSO</span>
         </div>
       </div>
     </div>
@@ -93,29 +92,26 @@ export function LoginPanels() {
     <div className="grid gap-5 md:grid-cols-2">
       <Panel
         title="Industry login"
-        subtitle="Post challenges, review proposals, and run secure collaborations with innovators."
+        subtitle="Post challenges, review proposals, run secure collaborations."
         bullets={[
           "Create problem nodes for your company",
           "Review AI matches and proposals privately",
-          "Launch NDA-first collaboration workspaces"
+          "Launch collaboration workspaces"
         ]}
         icon={<Building2 className="h-5 w-5" />}
-        primaryLabel="Continue with Google"
         role="INDUSTRY"
       />
       <Panel
         title="Individual login"
-        subtitle="Share solutions, submit proposals, and build a verified cross-industry track record."
+        subtitle="Share solutions, submit proposals, build a verified track record."
         bullets={[
           "Publish solution nodes from your domain",
           "Submit proposals without exposing full IP",
           "Earn verification via accepted proposals"
         ]}
         icon={<UserRound className="h-5 w-5" />}
-        primaryLabel="Continue with Google"
         role="INDIVIDUAL"
       />
     </div>
   );
 }
-
